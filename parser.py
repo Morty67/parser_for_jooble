@@ -91,8 +91,8 @@ class Parser:
                 {
                     "Link": link,
                     "PageTitle": page_title,
-                    "Address": address_info[0],
                     "Region": address_info[1],
+                    "Address": address_info[0],
                     "Description": description,
                     "Pictures": photo_array,
                     "Price": price_text,
