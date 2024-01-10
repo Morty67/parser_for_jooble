@@ -19,7 +19,6 @@ pip install -r requirements.txt
 *  Address.
 *  Description.
 *  An array of images
-*  Date of publication/update of the ad
 *  Price of the room
 *  Number of rooms
 *  The area of the property
