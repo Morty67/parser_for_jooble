@@ -31,6 +31,7 @@ Example Usage:
 import logging
 from typing import List
 
+import bs4
 import requests
 
 from data_saver import DataSaver
@@ -42,7 +43,7 @@ from utils import (
     parse_living_area,
     parse_address,
     parse_description,
-    parse_page_title,
+    parse_page_title, initialize_soup,
 )
 
 
@@ -70,23 +71,25 @@ class Parser:
         logging.basicConfig(filename=log_file, level=log_level)
         self.data = []
 
-    def parse_link(self, link: str) -> None:
+    def parse_link(self, link: str, soup: bs4.BeautifulSoup) -> None:
         """
         Parses real estate data from a given link and adds it to the data list.
 
         Parameters:
         - link (str): The link to the real estate property.
+        - soup (bs4.BeautifulSoup): BeautifulSoup object containing, real
+                estate information.
         """
         try:
             response = requests.get(link, headers=HEADERS)
             response.raise_for_status()
-            count_bedrooms = parse_bedrooms(response.text)
-            living_area = parse_living_area(response.text)
-            photo_array = parse_photo_array(response.text)
-            price_text = parse_price(response.text)
-            address_info = parse_address(response.text)
-            description = parse_description(response.text)
-            page_title = parse_page_title(response.text)
+            count_bedrooms = parse_bedrooms(soup)
+            living_area = parse_living_area(soup)
+            photo_array = parse_photo_array(soup)
+            price_text = parse_price(soup)
+            address_info = parse_address(soup)
+            description = parse_description(soup)
+            page_title = parse_page_title(soup)
             self.data.append(
                 {
                     "Link": link,
@@ -111,7 +114,14 @@ class Parser:
         - links (list): List of links to real estate properties.
         """
         for link in links:
-            self.parse_link(link)
+            try:
+                response = requests.get(link, headers=HEADERS)
+                response.raise_for_status()
+                soup = initialize_soup(response.text)
+                self.parse_link(link, soup)
+            except requests.exceptions.RequestException as e:
+                logging.error(
+                    f"Failed to fetch data for link {link}. Error: {e}")
 
 
 if __name__ == "__main__":
