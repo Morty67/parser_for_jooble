@@ -2,35 +2,40 @@
 Module: utils
 
 This module provides utility functions for parsing real estate data,
-from HTML text.
+from BeautifulSoup objects.
 
 Functions:
-- parse_address(html_text: str) -> tuple[str, str | None]: Parses the
-address, and region from HTML text.
-- parse_photo_array(html_text: str) -> Union[str, List[str]]: Parses the
-array, of photo URLs from HTML text.
-- parse_price(html_text: str) -> Union[str, float]: Parses the price,
-from HTML text.
-- parse_bedrooms(html_text: str) -> Union[str, int]: Parses the number,
-of bedrooms from HTML text.
-- parse_living_area(html_text: str) -> str: Parses the living area,
-from HTML text.
-- parse_description(html_text: str) -> str: Parses the description,
-from HTML text.
-- parse_page_title(html_text: str) -> Optional[str]: Parses the page title,
-from HTML text.
+- initialize_soup(html_text: str) -> bs4.BeautifulSoup: Initializes and returns
+  a BeautifulSoup object from HTML text.
+- parse_address(soup: bs4.BeautifulSoup) -> tuple[str, str | None]: Parses the
+  address and region from BeautifulSoup object.
+- parse_photo_array(soup: bs4.BeautifulSoup) -> Union[str, List[str]]:
+  Parses the array of photo URLs from BeautifulSoup object.
+- parse_price(soup: bs4.BeautifulSoup) -> Union[str, float]: Parses the price
+  from BeautifulSoup object.
+- parse_bedrooms(soup: bs4.BeautifulSoup) -> Union[str, int]: Parses the number
+  of bedrooms from BeautifulSoup object.
+- parse_living_area(soup: bs4.BeautifulSoup) -> str: Parses the living area
+  from BeautifulSoup object.
+- parse_description(soup: bs4.BeautifulSoup) -> str: Parses the description
+  from BeautifulSoup object.
+- parse_page_title(soup: bs4.BeautifulSoup) -> Optional[str]: Parses the page
+  title from BeautifulSoup object.
 
 Example Usage:
-    from utils import parse_address, parse_price
+    from utils import initialize_soup, parse_address, parse_price
 
     # HTML text containing real estate information
     html_text = "<html>...</html>"
 
+    # Initialize BeautifulSoup object
+    soup = initialize_soup(html_text)
+
     # Parse address and region
-    address, region = parse_address(html_text)
+    address, region = parse_address(soup)
 
     # Parse price
-    price = parse_price(html_text)
+    price = parse_price(soup)
 """
 
 import json
@@ -39,21 +44,32 @@ from typing import Union, List, Optional
 import bs4
 
 
-def parse_address(html_text: str) -> tuple[str, str | None]:
+def initialize_soup(html_text: str) -> bs4.BeautifulSoup:
     """
-    Parse the address and region from HTML text.
+    Initialize BeautifulSoup object.
 
     Args:
         html_text (str): HTML text containing real estate information.
 
     Returns:
+        bs4.BeautifulSoup: Initialized BeautifulSoup object.
+    """
+    return bs4.BeautifulSoup(html_text, "html.parser")
+
+
+def parse_address(soup: bs4.BeautifulSoup) -> tuple[str, str | None]:
+    """
+    Parse the address and region from BeautifulSoup object.
+
+    Args:
+        soup (bs4.BeautifulSoup): BeautifulSoup object containing,
+            real estate information.
+
+    Returns:
         tuple[str, str | None]: A tuple containing the address and region,
             (if available).
     """
-    soup = bs4.BeautifulSoup(html_text, "html.parser")
-    address_element = soup.find(
-        "h2", {"itemprop": "address", "class": "pt-1"}
-    )
+    address_element = soup.find("h2", {"itemprop": "address", "class": "pt-1"})
     if address_element:
         address_text = address_element.text.strip()
         address_parts = address_text.split(", ", 1)
@@ -65,18 +81,18 @@ def parse_address(html_text: str) -> tuple[str, str | None]:
         return address, region
 
 
-def parse_photo_array(html_text: str) -> Union[str, List[str]]:
+def parse_photo_array(soup: bs4.BeautifulSoup) -> Union[str, List[str]]:
     """
     Parse the array of photo URLs from HTML text.
 
     Args:
-        html_text (str): HTML text containing real estate information.
+        soup (bs4.BeautifulSoup): BeautifulSoup object containing,
+            real estate information.
 
     Returns:
         Union[str, List[str]]: A list of photo URLs or an error message,
             if the script tag is not found.
     """
-    soup = bs4.BeautifulSoup(html_text, "html.parser")
     script_tag = soup.find(
         "script", string=lambda s: "window.MosaicPhotoUrls" in s
     )
@@ -93,19 +109,18 @@ def parse_photo_array(html_text: str) -> Union[str, List[str]]:
         return "Script tag not found."
 
 
-def parse_price(html_text: str) -> Union[str, float]:
+def parse_price(soup: bs4.BeautifulSoup) -> Union[str, float]:
     """
     Parse the price from HTML text.
 
     Args:
-        html_text (str): HTML text containing real estate information.
+        soup (bs4.BeautifulSoup): BeautifulSoup object containing,
+            real estate information.
 
     Returns:
         Union[str, float]: The price as a string or float, or an error
             message, if the price element is not found.
     """
-    soup = bs4.BeautifulSoup(html_text, "html.parser")
-
     price_element = soup.find("span", {"class": "text-nowrap"})
 
     if price_element:
@@ -117,18 +132,18 @@ def parse_price(html_text: str) -> Union[str, float]:
         return "Price element not found."
 
 
-def parse_bedrooms(html_text: str) -> Union[str, int]:
+def parse_bedrooms(soup: bs4.BeautifulSoup) -> Union[str, int]:
     """
     Parse the number of bedrooms from HTML text.
 
     Args:
-        html_text (str): HTML text containing real estate information.
+        soup (bs4.BeautifulSoup): BeautifulSoup object containing,
+            real estate information.
 
     Returns:
         Union[str, int]: The number of bedrooms as a string or integer,
             or an error message if the element is not found.
     """
-    soup = bs4.BeautifulSoup(html_text, "html.parser")
     bedrooms_element = soup.find("div", {"class": "cac"})
 
     if bedrooms_element:
@@ -138,19 +153,18 @@ def parse_bedrooms(html_text: str) -> Union[str, int]:
         return "Bedrooms element not found."
 
 
-def parse_living_area(html_text: str) -> str:
+def parse_living_area(soup: bs4.BeautifulSoup) -> str:
     """
     Parse the living area from HTML text.
 
     Args:
-        html_text (str): HTML text containing real estate information.
+        soup (bs4.BeautifulSoup): BeautifulSoup object containing,
+            real estate information.
 
     Returns:
         str: The living area as a string, or an error message, if the
             element is not found.
     """
-    soup = bs4.BeautifulSoup(html_text, "html.parser")
-
     living_area_element = soup.find("div", {"class": "carac-value"})
 
     if living_area_element:
@@ -161,18 +175,18 @@ def parse_living_area(html_text: str) -> str:
         return "Living area element not found."
 
 
-def parse_description(html_text: str) -> str:
+def parse_description(soup: bs4.BeautifulSoup) -> str:
     """
     Parse the description from HTML text.
 
     Args:
-        html_text (str): HTML text containing real estate information.
+        soup (bs4.BeautifulSoup): BeautifulSoup object containing,
+            real estate information.
 
     Returns:
         str: The description as a string, or an error message, if the
             element is not found.
     """
-    soup = bs4.BeautifulSoup(html_text, "html.parser")
     description_element = soup.find("div", {"itemprop": "description"})
     if description_element:
         description_text = description_element.text.strip()
@@ -181,18 +195,18 @@ def parse_description(html_text: str) -> str:
         return "No description available."
 
 
-def parse_page_title(html_text: str) -> Optional[str]:
+def parse_page_title(soup: bs4.BeautifulSoup) -> Optional[str]:
     """
     Parse the page title from HTML text.
 
     Args:
-        html_text (str): HTML text containing real estate information.
+        soup (bs4.BeautifulSoup): BeautifulSoup object containing,
+            real estate information.
 
     Returns:
         Optional[str]: The page title as a string, or None if, the element
             is not found.
     """
-    soup = bs4.BeautifulSoup(html_text, "html.parser")
     page_title = soup.find("span", {"data-id": "PageTitle"})
     if page_title:
         page_title_text = page_title.text.strip()
